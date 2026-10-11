@@ -21,9 +21,8 @@ def get_live_rainfall(city_name):
     try:
         response = requests.get(url, timeout=5)
         data = response.json()
-        # Rain in last 1 hour, if available
-        rain_1h = data.get("rain", {}).get("1h", 0)
-        return round(rain_1h, 1)
+        rain_1h = data.get("rain", {}).get("1h", 0.0)
+        return float(rain_1h)
     except:
         return 0.0 # fallback if API fails
 
@@ -38,55 +37,39 @@ st.sidebar.header("📍 Location & Weather")
 
 location = st.sidebar.selectbox("Select your location", ["Warangal", "Hanamkonda", "Kazipet"])
 
-# NEW: Live data fetch
-live_rain = get_live_rainfall(CITY_MAP[location])
-
-st.sidebar.success(f"Live rainfall for {location}: {live_rain} mm in last 1hr")
+# Live data fetch
+live_rain = float(get_live_rainfall(CITY_MAP[location]))
+st.sidebar.success(f"Live rainfall for {location}: {live_rain:.2f} mm in last 1hr")
 
 rainfall = st.sidebar.number_input(
     "Expected rainfall next 24 hours (mm)",
-    min_value=0.0,
-    max_value=500.0,
-    value=float(live_rain * 6), # <-- ADDED float() here
-    step=5.0,
+    min_value=0.0, max_value=500.0,
+    value=live_rain * 6.0, step=5.0, format="%.2f",
     help="Auto-filled from live data. You can edit manually."
 )
 
 recent_rainfall = st.sidebar.number_input(
     "Rainfall in previous 24 hours (mm)",
-    min_value=0.0,
-    max_value=500.0,
-    value=float(live_rain), # <-- ADDED float() here
-    step=5.0,
-    help="Auto-filled from live data. You can edit manually."
-)
-recent_rainfall = st.sidebar.number_input(
-    "Rainfall in previous 24 hours (mm)",
-    min_value=0.0,
-    max_value=500.0,
-    value=live_rain,
-    step=5.0,
+    min_value=0.0, max_value=500.0,
+    value=live_rain, step=5.0, format="%.2f",
     help="Auto-filled from live data. You can edit manually."
 )
 
 drainage = st.sidebar.selectbox("Local drainage condition", ["Good", "Moderate", "Poor", "Unknown"])
 previous_waterlogging = st.sidebar.selectbox("Previous waterlogging reports", ["None known", "Some reports", "Frequent reports", "Unknown"])
 
-# ====== RISK LOGIC - SAME AS YOURS ======
+# ====== RISK LOGIC ======
 if drainage == "Unknown" or previous_waterlogging == "Unknown":
     st.warning("Some local information is missing. Treat the result cautiously.")
 
 score = 0
-if rainfall >= 50: score += 3
-elif rainfall >= 25: score += 2
-elif rainfall >= 10: score += 1
-
-if recent_rainfall >= 50: score += 2
-elif recent_rainfall >= 25: score += 1
-
+if rainfall >= 50.0: score += 3
+elif rainfall >= 25.0: score += 2
+elif rainfall >= 10.0: score += 1
+if recent_rainfall >= 50.0: score += 2
+elif recent_rainfall >= 25.0: score += 1
 if drainage == "Poor": score += 2
 elif drainage == "Moderate": score += 1
-
 if previous_waterlogging == "Frequent reports": score += 2
 elif previous_waterlogging == "Some reports": score += 1
 
@@ -111,10 +94,10 @@ st.subheader("🛡️ Safety recommendation")
 st.write(recommendation)
 
 st.subheader("📊 Assessment details")
-st.write(f"- Live 1hr rainfall from API: {live_rain:.1f} mm")
+st.write(f"- Live 1hr rainfall from API: {live_rain:.2f} mm")
 st.write(f"- Previous 24-hour rainfall input: {recent_rainfall:.1f} mm")
 st.write(f"- Drainage condition: {drainage}")
 st.write(f"- Previous waterlogging reports: {previous_waterlogging}")
 st.write(f"- Internal risk score: {score}")
 
-st.caption("JalRakshak AI Hackathon Prototype | Uses OpenWeather API + Manual inputs. Not IMD official data.")
+st.caption("JalRakshak AI Hackathon Prototype | Uses OpenWeather API + Manual inputs.")
