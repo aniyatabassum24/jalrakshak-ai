@@ -47,11 +47,19 @@ rainfall = st.sidebar.number_input(
     "Expected rainfall next 24 hours (mm)",
     min_value=0.0,
     max_value=500.0,
-    value=live_rain * 6, # estimate: 1hr * 6 as placeholder
+    value=float(live_rain * 6), # <-- ADDED float() here
     step=5.0,
     help="Auto-filled from live data. You can edit manually."
 )
 
+recent_rainfall = st.sidebar.number_input(
+    "Rainfall in previous 24 hours (mm)",
+    min_value=0.0,
+    max_value=500.0,
+    value=float(live_rain), # <-- ADDED float() here
+    step=5.0,
+    help="Auto-filled from live data. You can edit manually."
+)
 recent_rainfall = st.sidebar.number_input(
     "Rainfall in previous 24 hours (mm)",
     min_value=0.0,
